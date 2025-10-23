@@ -1,0 +1,146 @@
+{% include 'header.html' %}
+<body>
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main-panel">
+        {% include 'navbar.html' %}
+        <div class="container">
+            <div class="page-inner">
+                <div class="page-header">
+                    <h3 class="fw-bold mb-3">Manajemen Pengguna</h3>
+                </div>
+
+                <!-- Tombol tambah -->
+                <button class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="fa fa-plus"></i> Tambah User
+                </button>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="usersTable" class="table table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Username</th>
+                                        <th>Nama Lengkap</th>
+                                        <th>Role</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for u in users %}
+                                    <tr>
+                                        <td>{{ u.username }}</td>
+                                        <td>{{ u.nama }}</td>
+                                        <td>{{ u.role }}</td>
+                                        <td>
+                                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal{{ u._id }}">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <a href="{{ url_for('delete_user', id=u._id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Hapus user ini?')">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal Edit -->
+                                    <div class="modal fade" id="editUserModal{{ u._id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <form method="POST" action="{{ url_for('edit_user', id=u._id) }}">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Edit User</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label>Username</label>
+                                                            <input type="text" name="username" class="form-control" value="{{ u.username }}" readonly>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label>Nama Lengkap</label>
+                                                            <input type="text" name="nama" class="form-control" value="{{ u.nama }}">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label>Role</label>
+                                                            <select name="role" class="form-select">
+                                                                <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Admin</option>
+                                                                <option value="dosen" {% if u.role=='dosen' %}selected{% endif %}>Dosen</option>
+                                                                <option value="kaprodi" {% if u.role=='kaprodi' %}selected{% endif %}>Kaprodi</option>
+                                                                <!-- <option value="mahasiswa" {% if u.role=='mahasiswa' %}selected{% endif %}>Mahasiswa</option> -->
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label>Password Baru (opsional)</label>
+                                                            <input type="password" name="password" class="form-control">
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-primary">Simpan</button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Tambah -->
+                <div class="modal fade" id="addUserModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="POST" action="{{ url_for('add_user') }}">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Tambah User</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label>Username</label>
+                                        <input type="text" name="username" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Nama Lengkap</label>
+                                        <input type="text" name="nama" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Role</label>
+                                        <select name="role" class="form-select" required>
+                                            <option value="admin">Admin</option>
+                                            <option value="dosen">Dosen</option>
+                                            <option value="kaprodi">Kaprodi</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>Password</label>
+                                        <input type="password" name="password" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Simpan</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+<script>
+$(document).ready(function () {
+    $('#usersTable').DataTable({
+        "language": { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json" }
+    });
+});
+</script>
+</body>
+</html>

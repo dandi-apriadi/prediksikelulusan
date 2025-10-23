@@ -1,0 +1,434 @@
+# Setup Server Ubuntu untuk Prediksi Kelulusan Mahasiswa
+# Domain: prediksikelulusanmahasiswa.site
+
+## 1. PERSIAPAN AWAL SERVER UBUNTU
+
+### Update sistem
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### Install dependencies dasar
+```bash
+sudo apt install -y python3 python3-pip python3-venv nginx git ufw curl
+sudo apt install -y build-essential libssl-dev libffi-dev python3-dev
+```
+
+## 2. SETUP FIREWALL (UFW)
+
+```bash
+# Allow SSH
+sudo ufw allow OpenSSH
+
+# Allow HTTP dan HTTPS
+sudo ufw allow 'Nginx Full'
+
+# Enable firewall
+sudo ufw enable
+sudo ufw status
+```
+
+## 3. SETUP APLIKASI
+
+### Buat user untuk aplikasi (opsional tapi direkomendasikan)
+```bash
+sudo adduser flaskapp
+sudo usermod -aG sudo flaskapp
+su - flaskapp
+```
+
+### Clone atau upload project
+```bash
+cd /home/flaskapp
+mkdir -p prediksi_app
+cd prediksi_app
+# Upload semua file aplikasi Anda ke direktori ini
+```
+
+### Setup Python Virtual Environment
+```bash
+cd /home/flaskapp/prediksi_app
+python3 -m venv env
+source env/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Test aplikasi
+```bash
+python app.py
+# Ctrl+C untuk stop
+```
+
+## 4. SETUP GUNICORN (Production WSGI Server)
+
+### Install Gunicorn
+```bash
+source /home/flaskapp/prediksi_app/env/bin/activate
+pip install gunicorn
+```
+
+### Buat file systemd service untuk Gunicorn
+```bash
+sudo nano /etc/systemd/system/prediksi.service
+```
+
+Isi dengan:
+```ini
+[Unit]
+Description=Prediksi Kelulusan Mahasiswa Flask App
+After=network.target
+
+[Service]
+User=flaskapp
+Group=www-data
+WorkingDirectory=/home/flaskapp/prediksi_app
+Environment="PATH=/home/flaskapp/prediksi_app/env/bin"
+ExecStart=/home/flaskapp/prediksi_app/env/bin/gunicorn --workers 4 --bind unix:prediksi.sock -m 007 app:app
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### Start dan enable service
+```bash
+sudo systemctl start prediksi
+sudo systemctl enable prediksi
+sudo systemctl status prediksi
+```
+
+## 5. SETUP NGINX
+
+### Hapus default config
+```bash
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+### Buat config untuk domain
+```bash
+sudo nano /etc/nginx/sites-available/prediksikelulusanmahasiswa
+```
+
+Isi dengan:
+```nginx
+server {
+    listen 80;
+    server_name prediksikelulusanmahasiswa.site www.prediksikelulusanmahasiswa.site;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/flaskapp/prediksi_app/prediksi.sock;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 75s;
+    }
+
+    location /static {
+        alias /home/flaskapp/prediksi_app/static;
+        expires 30d;
+    }
+
+    location /uploads {
+        alias /home/flaskapp/prediksi_app/uploads;
+    }
+
+    client_max_body_size 50M;
+}
+```
+
+### Enable site
+```bash
+sudo ln -s /etc/nginx/sites-available/prediksikelulusanmahasiswa /etc/nginx/sites-enabled
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 6. SETUP SSL/HTTPS dengan Let's Encrypt (Certbot)
+
+### Install Certbot
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+```
+
+### Generate SSL Certificate
+```bash
+sudo certbot --nginx -d prediksikelulusanmahasiswa.site -d www.prediksikelulusanmahasiswa.site
+```
+
+Ikuti instruksi interaktif:
+- Masukkan email Anda
+- Setuju dengan Terms of Service
+- Pilih opsi untuk redirect HTTP ke HTTPS (pilih 2)
+
+### Auto-renewal SSL
+```bash
+sudo certbot renew --dry-run
+```
+
+Certbot akan otomatis membuat cron job untuk renewal.
+
+## 7. SETUP MONGODB (Jika belum ada)
+
+### Install MongoDB
+```bash
+# Import MongoDB public GPG key
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+# Create list file
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+# Update dan install
+sudo apt update
+sudo apt install -y mongodb-org
+
+# Start MongoDB
+sudo systemctl start mongod
+sudo systemctl enable mongod
+sudo systemctl status mongod
+```
+
+### Secure MongoDB (PENTING!)
+```bash
+mongosh
+```
+
+Di dalam MongoDB shell:
+```javascript
+use admin
+db.createUser({
+  user: "adminuser",
+  pwd: "your_strong_password_here",
+  roles: [ { role: "userAdminAnyDatabase", db: "admin" }, "readWriteAnyDatabase" ]
+})
+
+use tugasakhir
+db.createUser({
+  user: "flaskapp",
+  pwd: "your_app_password_here",
+  roles: [ { role: "readWrite", db: "tugasakhir" } ]
+})
+exit
+```
+
+### Enable authentication
+```bash
+sudo nano /etc/mongod.conf
+```
+
+Tambahkan/uncomment:
+```yaml
+security:
+  authorization: enabled
+```
+
+Restart MongoDB:
+```bash
+sudo systemctl restart mongod
+```
+
+### Update connection string di app.py
+Ubah connection string MongoDB di app.py:
+```python
+MONGO_URI = "mongodb://flaskapp:your_app_password_here@localhost:27017/tugasakhir"
+```
+
+## 8. KONFIGURASI DNS
+
+Di provider domain Anda (tempat beli domain prediksikelulusanmahasiswa.site):
+
+### Tambahkan A Record
+```
+Type: A
+Name: @
+Value: [IP_ADDRESS_SERVER_ANDA]
+TTL: 3600
+```
+
+### Tambahkan A Record untuk www
+```
+Type: A
+Name: www
+Value: [IP_ADDRESS_SERVER_ANDA]
+TTL: 3600
+```
+
+Atau gunakan CNAME untuk www:
+```
+Type: CNAME
+Name: www
+Value: prediksikelulusanmahasiswa.site
+TTL: 3600
+```
+
+## 9. MONITORING DAN MAINTENANCE
+
+### Cek log aplikasi
+```bash
+sudo journalctl -u prediksi -f
+```
+
+### Cek log Nginx
+```bash
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+```
+
+### Restart aplikasi setelah update
+```bash
+sudo systemctl restart prediksi
+sudo systemctl restart nginx
+```
+
+### Backup MongoDB
+```bash
+# Buat direktori backup
+mkdir -p /home/flaskapp/backups
+
+# Backup script
+mongodump --uri="mongodb://flaskapp:your_app_password_here@localhost:27017/tugasakhir" --out=/home/flaskapp/backups/backup-$(date +%Y%m%d-%H%M%S)
+```
+
+### Setup Cron untuk auto backup (opsional)
+```bash
+crontab -e
+```
+
+Tambahkan:
+```cron
+# Backup MongoDB setiap hari jam 2 pagi
+0 2 * * * mongodump --uri="mongodb://flaskapp:your_app_password_here@localhost:27017/tugasakhir" --out=/home/flaskapp/backups/backup-$(date +\%Y\%m\%d)
+```
+
+## 10. OPTIMASI PERFORMA
+
+### Optimasi Nginx
+Edit `/etc/nginx/nginx.conf`:
+```nginx
+worker_processes auto;
+worker_connections 1024;
+
+gzip on;
+gzip_comp_level 6;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+```
+
+### Optimasi Gunicorn
+Edit `/etc/systemd/system/prediksi.service`:
+```ini
+# Sesuaikan workers dengan CPU cores
+ExecStart=/home/flaskapp/prediksi_app/env/bin/gunicorn --workers 4 --threads 2 --worker-class=gthread --bind unix:prediksi.sock -m 007 --timeout 120 app:app
+```
+
+Reload daemon dan restart:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart prediksi
+```
+
+## 11. SECURITY HARDENING
+
+### Update app.py untuk production
+Pastikan di app.py:
+```python
+# Jangan gunakan debug=True di production!
+if __name__ == '__main__':
+    app.run(debug=False, host='0.0.0.0')
+```
+
+### Set SECRET_KEY yang kuat
+```python
+import secrets
+# Generate: secrets.token_hex(32)
+app.config['SECRET_KEY'] = 'your_very_strong_secret_key_here'
+```
+
+### Rate Limiting (opsional - install Flask-Limiter)
+```bash
+pip install Flask-Limiter
+```
+
+### Fail2Ban untuk proteksi brute force (opsional)
+```bash
+sudo apt install fail2ban -y
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+```
+
+## 12. CHECKLIST DEPLOYMENT
+
+- [ ] Server Ubuntu sudah update
+- [ ] Python 3 dan dependencies terinstall
+- [ ] Firewall (UFW) dikonfigurasi
+- [ ] Aplikasi Flask berjalan di virtual environment
+- [ ] Gunicorn service aktif dan running
+- [ ] Nginx dikonfigurasi dan running
+- [ ] DNS A record mengarah ke IP server
+- [ ] SSL certificate terinstall (HTTPS aktif)
+- [ ] MongoDB terinstall dan secured
+- [ ] Connection string MongoDB sudah diupdate
+- [ ] SECRET_KEY sudah diganti dengan yang kuat
+- [ ] Debug mode dimatikan (debug=False)
+- [ ] Testing aplikasi di browser
+- [ ] Backup strategy sudah disiapkan
+
+## 13. TROUBLESHOOTING
+
+### Aplikasi tidak bisa diakses
+```bash
+# Cek status Gunicorn
+sudo systemctl status prediksi
+
+# Cek status Nginx
+sudo systemctl status nginx
+
+# Cek log error
+sudo journalctl -u prediksi -n 50
+sudo tail -n 50 /var/log/nginx/error.log
+```
+
+### Error 502 Bad Gateway
+```bash
+# Pastikan socket file ada
+ls -la /home/flaskapp/prediksi_app/prediksi.sock
+
+# Cek permission
+sudo chown flaskapp:www-data /home/flaskapp/prediksi_app/prediksi.sock
+
+# Restart services
+sudo systemctl restart prediksi
+sudo systemctl restart nginx
+```
+
+### MongoDB connection error
+```bash
+# Cek MongoDB status
+sudo systemctl status mongod
+
+# Test connection
+mongosh "mongodb://flaskapp:password@localhost:27017/tugasakhir"
+```
+
+## 14. UPDATE APLIKASI
+
+Ketika ada update code:
+```bash
+cd /home/flaskapp/prediksi_app
+git pull  # atau upload file baru
+
+# Activate venv dan update dependencies jika ada
+source env/bin/activate
+pip install -r requirements.txt
+
+# Restart aplikasi
+sudo systemctl restart prediksi
+```
+
+## KONTAK & SUPPORT
+
+Jika ada masalah:
+1. Cek log aplikasi dan Nginx
+2. Verifikasi DNS sudah propagate (gunakan: https://dnschecker.org)
+3. Test SSL certificate (gunakan: https://www.ssllabs.com/ssltest/)
+
+Selamat! Aplikasi Anda seharusnya sudah berjalan di:
+https://prediksikelulusanmahasiswa.site

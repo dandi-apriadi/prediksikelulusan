@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    {% include 'header.html' %}
+    <title>Hasil Prediksi Kelulusan</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        {% include 'sidebar.html' %}
+        <div class="main-panel">
+            <div class="main-header">
+                {% include 'navbar.html' %}
+            </div>
+            <div class="container">
+                <div class="page-inner">
+                    <div class="page-header">
+                        <h3 class="fw-bold mb-3">Hasil Prediksi</h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert {{ 'alert-success' if prediction|lower == 'lulus' else 'alert-danger' }} shadow-sm py-4 text-center" role="alert">
+                                <h2 class="mb-1 fw-bold">Hasil Prediksi: {{ prediction }}</h2>
+                                <p class="mb-0">Untuk Mahasiswa: <strong>{{ nama_mahasiswa }}</strong> (NIM: {{ nim }})</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 1: Top faktor di atas -->
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-10 mx-auto">
+                            <div class="card shadow-sm">
+                                <div class="card-header">
+                                    <h4 class="card-title mb-1">Top 5 Faktor Paling Berpengaruh</h4>
+                                    <p class="card-category mb-0">Kontribusi terbesar pada hasil prediksi mahasiswa ini.</p>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Faktor</th>
+                                                    <th class="text-end">Kontribusi</th>
+                                                    <th class="text-center">Efek terhadap hasil</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for row in analisis %}
+                                                <tr>
+                                                    <td>{{ row.Faktor }}</td>
+                                                    <td class="text-end">{{ "%+.4f"|format(row.Kontribusi) }}</td>
+                                                    <td class="text-center">
+                                                        {% if prediction|lower == 'lulus' %}
+                                                            {% if row.Kontribusi > 0 %}
+                                                                <span class="badge bg-success">Meningkatkan peluang Lulus</span>
+                                                            {% else %}
+                                                                <span class="badge bg-secondary">Menurunkan peluang Lulus</span>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            {% if row.Kontribusi > 0 %}
+                                                                <span class="badge bg-danger">Meningkatkan peluang Tidak Lulus</span>
+                                                            {% else %}
+                                                                <span class="badge bg-primary">Menurunkan peluang Tidak Lulus</span>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="row mt-4 g-4">
+                        <div class="col-12 col-lg-10 mx-auto">
+                            <div class="card shadow-sm">
+                                <div class="card-header">
+                                    <h4 class="card-title mb-1">Analisis Prediksi Individu (Force Plot)</h4>
+                                    <!-- <p class="card-category mb-0">
+                                        Visualisasi ini menunjukkan bagaimana setiap fitur mendorong hasil prediksi untuk mahasiswa ini.
+                                        <span class="text-danger fw-bold">Merah</span> mendorong ke arah 'Lulus', <span class="text-primary fw-bold">Biru</span> mendorong ke arah 'Tidak Lulus'.
+                                    </p> -->
+                                </div>
+                                <div class="card-body">
+                                    <div class="shap-plot-container">
+                                        {{ shap_plot_html|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        
+                    
+                    <div class="row">
+                        <div class="col-md-12 text-center my-4">
+                             <a href="{{ url_for('prediction') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i> Lakukan Prediksi Lain
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% include 'footer.html' %}
+        </div>
+    </div>
+</body>
+</html>

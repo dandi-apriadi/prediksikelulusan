@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id"> <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Prediksi Kelulusan Mahasiswa</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    
+    <link rel="icon" href="{{ url_for('static', filename='assets/img/logo-polimdo.ico') }}" />
+
+    <script src="{{ url_for('static', filename='assets/js/plugin/webfont/webfont.min.js') }}"></script>
+    <script>
+        WebFont.load({
+            google: { families: ["Public Sans:300,400,500,600,700"] },
+            custom: {
+                families: [
+                    "Font Awesome 5 Solid",
+                    "Font Awesome 5 Regular",
+                    "Font Awesome 5 Brands",
+                    "simple-line-icons",
+                ],
+                // PERBAIKAN: Path ke fonts.min.css juga diubah
+                urls: ["{{ url_for('static', filename='assets/css/fonts.min.css') }}"],
+            },
+            active: function () {
+                sessionStorage.fonts = true;
+            },
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/shap@latest/dist/shap.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/plugins.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.min.css') }}" />
+    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+</head>

@@ -1,0 +1,109 @@
+<div class="sidebar sidebar-style-2" data-background-color="blue2">
+  <div class="sidebar-logo">
+    <div class="logo-header" data-background-color="blue2">
+      <a
+        href="{{ url_for('dashboard') }}"
+        class="logo"
+        style="
+          display: flex;
+          align-items: center;
+          text-decoration: none;
+          gap: 12px;
+        "
+      >
+        <img
+          src="{{ url_for('static', filename='assets/img/logo-polimdo.ico') }}"
+          alt="navbar brand"
+          class="navbar-brand"
+          height="40"
+        />
+        <span style="color: white; font-size: 16px; font-weight: bold"
+          >PREDIKSI</span
+        >
+      </a>
+      <div class="nav-toggle">
+        <button class="btn btn-toggle toggle-sidebar">
+          <i class="gg-menu-right"></i>
+        </button>
+        <button class="btn btn-toggle sidenav-toggler">
+          <i class="gg-menu-left"></i>
+        </button>
+      </div>
+      <button class="topbar-toggler more">
+        <i class="gg-more-vertical-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-wrapper scrollbar scrollbar-inner">
+    <div class="sidebar-content">
+      <ul class="nav nav-primary">
+        <li
+          class="nav-item {% if active_page == 'dashboard' %}active{% endif %}"
+        >
+          <a href="{{ url_for('dashboard') }}">
+            <i class="fas fa-home"></i>
+            <p>Dashboard</p>
+          </a>
+        </li>
+
+        <li class="nav-section">
+          <span class="sidebar-mini-icon">
+            <i class="fa fa-ellipsis-h"></i>
+          </span>
+          <h4 class="text-section">Menu</h4>
+        </li>
+
+        <li
+          class="nav-item {% if active_page == 'prediction' %}active{% endif %}"
+        >
+          <a href="{{ url_for('prediction') }}">
+            <i class="fas fa-lightbulb"></i>
+            <p>Prediksi</p>
+          </a>
+        </li>
+
+        <li class="nav-item {% if active_page == 'history' %}active{% endif %}">
+          <a href="{{ url_for('history') }}">
+            <i class="fas fa-history"></i>
+            <p>Riwayat</p>
+          </a>
+        </li>
+
+        {% if session['role'] == 'admin' or session['role'] == 'kaprodi' %}
+        <li
+          class="nav-item {% if active_page == 'mata_kuliah' %}active{% endif %}"
+        >
+          <a href="{{ url_for('manage_mk') }}">
+            <i class="fas fa-book"></i>
+            <p>Mata Kuliah</p>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if session['role'] == 'admin' %}
+        <li class="nav-item {% if active_page == 'users' %}active{% endif %}">
+          <a href="{{ url_for('manage_users') }}">
+            <i class="fas fa-user-cog"></i>
+            <p>Manajemen User</p>
+          </a>
+        </li>
+        {% endif %}
+
+        <li class="nav-item {% if active_page == 'profil' %}active{% endif %}">
+          <a href="{{ url_for('profil') }}">
+            <i class="fas fa-user"></i>
+            <p>Profil</p>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="{{ url_for('logout') }}">
+            <i class="fas fa-sign-out-alt"></i>
+            <p>Logout</p>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,185 @@
+{% include 'header.html' %}
+<body>
+  <div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main-panel">
+      <div class="main-header">{% include 'navbar.html' %}</div>
+
+      <div class="container">
+        <div class="page-inner">
+          <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+            <div>
+              <h3 class="fw-bold mb-3">Dashboard</h3>
+              <h6 class="op-7 mb-2">Ringkasan Informasi Sistem Prediksi</h6>
+            </div>
+            <div class="ms-md-auto py-2 py-md-0">
+              <a href="{{ url_for('prediction') }}" class="btn btn-primary btn-round">
+                <i class="fas fa-plus-circle me-2"></i>Buat Prediksi Baru
+              </a>
+              {% if session.get('role') == 'admin' %}
+              <a href="{{ url_for('manage_users') }}" class="btn btn-secondary btn-round">
+                <i class="fas fa-users-cog me-2"></i>Kelola Pengguna
+              </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-6 col-md-4">
+              <div class="card card-stats card-round">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-icon">
+                      <div class="icon-big text-center icon-primary bubble-shadow-small">
+                        <i class="fas fa-user-graduate"></i>
+                      </div>
+                    </div>
+                    <div class="col col-stats ms-3 ms-sm-0">
+                      <div class="numbers">
+                        <p class="card-category">Jumlah Mahasiswa</p>
+                        <h4 class="card-title">{{ jumlah_mahasiswa }}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+              <div class="card card-stats card-round">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-icon">
+                      <div class="icon-big text-center icon-info bubble-shadow-small">
+                        <i class="fas fa-chart-line"></i>
+                      </div>
+                    </div>
+                    <div class="col col-stats ms-3 ms-sm-0">
+                      <div class="numbers">
+                        <p class="card-category">Total Prediksi</p>
+                        <h4 class="card-title">{{ jumlah_prediksi }}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-md-4">
+              <div class="card card-stats card-round">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-icon">
+                      <div class="icon-big text-center icon-secondary bubble-shadow-small">
+                        <i class="fas fa-users"></i>
+                      </div>
+                    </div>
+                    <div class="col col-stats ms-3 ms-sm-0">
+                      <div class="numbers">
+                        <p class="card-category">Pengguna Sistem</p>
+                        <h4 class="card-title">{{ total_pengguna }}</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Grafik -->
+            <div class="col-md-7">
+              <div class="card card-round">
+                <div class="card-header">
+                  <div class="card-head-row">
+                    <div class="card-title">Distribusi Hasil Prediksi</div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  {% if jumlah_prediksi > 0 %}
+                  <div class="chart-container">
+                    <canvas id="pieChart" style="width: 100%; height: 300px"></canvas>
+                  </div>
+                  {% else %}
+                  <p class="text-muted text-center mb-0">Belum ada data prediksi.</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Aktivitas -->
+            <div class="col-md-5">
+              <div class="card card-round">
+                <div class="card-header">
+                  <div class="card-title">Aktivitas Prediksi Terbaru</div>
+                </div>
+                <div class="card-body">
+                  <div class="card-list">
+                    {% if aktivitas_terbaru %}
+                      {% for pred in aktivitas_terbaru %}
+                      <div class="item-list">
+                        <div class="avatar">
+                          <span class="avatar-title rounded-circle border border-white {% if pred.Prediksi == 'Lulus' %}bg-success{% else %}bg-danger{% endif %}">
+                            <i class="fas {% if pred.Prediksi == 'Lulus' %}fa-check{% else %}fa-times{% endif %}"></i>
+                          </span>
+                        </div>
+                        <div class="info-user ms-3">
+                          <div class="username">{{ pred.Nama }} ({{ pred.NIM }})</div>
+                          <div class="status">Hasil: <b>{{ pred.Prediksi }}</b></div>
+                        </div>
+                        <div class="ms-auto text-muted small">
+                          {{ pred.DateTime.strftime('%d %b %H:%M') }}
+                        </div>
+                      </div>
+                      {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">Belum ada aktivitas.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {% include 'footer.html' %}
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      {% if jumlah_prediksi > 0 %}
+      var ctx = document.getElementById('pieChart').getContext('2d');
+      var myPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          datasets: [{
+            data: [{{ lulus }}, {{ tidak_lulus }}],
+            backgroundColor: ['#28a745', '#dc3545'],
+            label: 'Distribusi Hasil Prediksi'
+          }],
+          labels: ['Lulus', 'Tidak Lulus']
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: function(tooltipItem) {
+                  let label = tooltipItem.label || '';
+                  let value = tooltipItem.raw || 0;
+                  let total = tooltipItem.chart.getDatasetMeta(0).total;
+                  let percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                  return `${label}: ${value} prediksi (${percentage})`;
+                }
+              }
+            }
+          }
+        }
+      });
+      {% endif %}
+    });
+  </script>
+</body>

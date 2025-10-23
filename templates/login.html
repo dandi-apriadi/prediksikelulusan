@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistem Prediksi Kelulusan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/style.css') }}"> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body.login-v2 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-y: auto;
+        }
+
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1100px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .login-info {
+            flex: 0 1 500px;
+            padding-right: 3rem;
+            color: #1a2035;
+            text-align: center;
+        }
+
+        .login-info .logo-container { 
+            margin-bottom: 1.5rem;
+        }
+
+        .login-info .logo {
+            max-width: 80px;
+            height: auto; 
+        }
+
+        .login-info h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .login-info p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .login-container {
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 420px;
+        }
+
+
+        .role-selection {
+            margin-bottom: 1.5rem; 
+        }
+
+        .role-selection .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+  
+        .role-selector {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        
+        .role-selector input[type="radio"] {
+            opacity: 0;
+            position: fixed;
+            width: 0;
+        }
+        
+        .role-selector label {
+            display: inline-block;
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            flex-grow: 1;
+            text-align: center;
+        }
+        
+        .role-selector label:hover {
+            background-color: #ced4da;
+        }
+        
+    
+        .role-selector input[type="radio"]:checked + label {
+            background-color: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+        }
+
+        .role-selector input[type="radio"]:focus + label {
+            box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+        }
+
+        .error-message {
+            color: #dc3545; 
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+
+        @media (max-width: 992px) {
+            .login-wrapper {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .login-info {
+                padding-right: 0;
+                padding-bottom: 2rem;
+                flex-basis: auto;
+            }
+            body.login-v2 {
+                align-items: flex-start;
+                padding: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body class="login-v2">
+    <div class="background-shape shape1"></div>
+    <div class="background-shape shape2"></div>
+    
+    <div class="login-wrapper">
+        
+        <div class="login-info">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='assets/img/logo-polimdo.ico') }}" alt="Logo Website" class="logo">
+            </div>
+            <h1>Sistem Prediksi Kelulusan Mahasiswa Prodi D4 - Teknik Informatika</h1>
+            <p>
+                Selamat datang di platform prediksi kelulusan mahasiswa. Masukkan data akademik dan non-akademik untuk melihat prediksi kelulusan secara akurat dan cepat.
+            </p>
+        </div>
+
+        <div class="login-container">
+            <div class="login-card">
+                
+                <div class="login-header">
+                    <h2 class="login-title">Login Akun</h2>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('login') }}" class="login-form" id="loginForm">
+                    
+                    <div class="role-selection">
+                        <label class="form-label">Pilih Role Anda:</label>
+                        <div class="role-selector">
+                            <input type="radio" id="role-dosen" name="role" value="dosen" required>
+                            <label for="role-dosen">Dosen</label>
+
+                            <input type="radio" id="role-kaprodi" name="role" value="kaprodi">
+                            <label for="role-kaprodi">Kaprodi</label>
+
+                            <input type="radio" id="role-admin" name="role" value="admin">
+                            <label for="role-admin">Admin</label>
+                            
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="username">Username (NIP/NIM)</label>
+                        <input type="text" id="username" name="username" 
+                               placeholder="Pilih role terlebih dahulu" 
+                               value="{{ request.form.username }}" required>
+                        <div id="usernameError" class="error-message"></div>
+                    </div>
+                
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Masukkan password Anda" required>
+                    </div>
+                
+                    <div class="form-options">
+                        <div class="remember-me">
+                            <input type="checkbox" id="rememberme" name="rememberme">
+                            <label for="rememberme">Ingat Saya</label>
+                        </div>
+                        <!-- <a href="#" class="forgot-password">Lupa Password?</a> -->
+                    </div>
+                
+                    <button type="submit" class="login-button">
+                        <span>Login</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const usernameError = document.getElementById('usernameError');
+        const roleRadios = document.querySelectorAll('input[name="role"]');
+
+  
+        function validateUsername() {
+          
+            const selectedRole = document.querySelector('input[name="role"]:checked');
+            const username = usernameInput.value.trim();
+            let isValid = true;
+            let errorMessage = "";
+
+            if (!selectedRole) {
+        
+                isValid = false;
+                errorMessage = "Silakan pilih role Anda.";
+            } else if (username === "") {
+              
+                isValid = true;
+                errorMessage = "";
+            } else {
+                const roleValue = selectedRole.value;
+                if (roleValue === "mahasiswa") {
+                    if (!/^\d{1,8}$/.test(username)) {
+                        isValid = false;
+                        errorMessage = "NIM harus berupa angka, maksimal 8 digit.";
+                    }
+                } else if (roleValue === "dosen" || roleValue === "kaprodi") {
+                    if (!/^\d{18}$/.test(username)) {
+                        isValid = false;
+                        errorMessage = "NIP harus berupa angka, tepat 18 digit.";
+                    }
+                }
+
+            }
+
+
+            if (!isValid) {
+                usernameError.textContent = errorMessage;
+                usernameError.style.display = 'block';
+            } else {
+                usernameError.style.display = 'none';
+            }
+
+            return isValid;
+        }
+        
+
+        function updatePlaceholder() {
+            const selectedRole = document.querySelector('input[name="role"]:checked');
+            if (selectedRole) {
+                const roleValue = selectedRole.value;
+                if (roleValue === "mahasiswa") {
+                    usernameInput.placeholder = "Masukkan NIM (maks 8 digit)";
+                } else if (roleValue === "dosen" || roleValue === "kaprodi") {
+                    usernameInput.placeholder = "Masukkan NIP (18 digit)";
+                } else if (roleValue === "admin") {
+                    usernameInput.placeholder = "Masukkan username admin";
+                }
+            } else {
+                usernameInput.placeholder = "Pilih role terlebih dahulu";
+            }
+
+            validateUsername();
+        }
+
+   
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', updatePlaceholder);
+        });
+
+      
+        usernameInput.addEventListener('input', validateUsername);
+
+
+        loginForm.addEventListener('submit', function (e) {
+            if (!validateUsername()) {
+                e.preventDefault(); 
+                alert('Terdapat kesalahan pada input Anda. Mohon periksa kembali.');
+            }
+        });
+
+       
+        document.addEventListener('DOMContentLoaded', updatePlaceholder);
+    </script>
+</body>
+</html>

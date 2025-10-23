@@ -1,0 +1,39 @@
+{% include 'header.html' %}
+<body>
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main-panel">
+        {% include 'navbar.html' %}
+        <div class="container">
+            <div class="page-inner">
+                <div class="page-header">
+                    <h3 class="fw-bold mb-3">Profil Pengguna</h3>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('profil') }}">
+                            <div class="mb-3">
+                                <label>Username</label>
+                                <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label>Nama Lengkap</label>
+                                <input type="text" name="nama" class="form-control" value="{{ user.nama }}">
+                            </div>
+                            <div class="mb-3">
+                                <label>Password Baru (kosongkan jika tidak ingin mengubah)</label>
+                                <input type="password" name="password" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>

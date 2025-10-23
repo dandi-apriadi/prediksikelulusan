@@ -1,0 +1,148 @@
+{% include 'header.html' %}
+<body>
+    <div class="wrapper">
+        {% include 'sidebar.html' %}
+        <div class="main-panel">
+            <div class="main-header">
+                {% include 'navbar.html' %}
+            </div>
+
+            <div class="container">
+                <div class="page-inner">
+                    <div class="page-header">
+                        <h3 class="fw-bold mb-1">Halaman Prediksi</h3>
+                        <ul class="breadcrumbs mb-1">
+                            <li class="nav-home">
+                                <a href="{{ url_for('dashboard') }}">
+                                    <i class="icon-home"></i>
+                                </a>
+                            </li>
+                            <li class="separator">
+                                <i class="icon-arrow-right"></i>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#">Prediksi</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Langkah 1: Pilih Semester</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="GET" action="{{ url_for('prediction') }}">
+                                <div class="form-group d-flex align-items-center">
+                                    <label for="semester" class="me-3 mb-0">Tampilkan mata kuliah untuk:</label>
+                                    <select class="form-select w-auto" name="semester" id="semester" onchange="this.form.submit()">
+                                        {% for smt in semesters %}
+                                        <option value="{{ smt }}" {% if smt == selected_semester %}selected{% endif %}>
+                                            Semester {{ smt }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('prediction') }}">
+                        <input type="hidden" name="semester" value="{{ selected_semester }}">
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Langkah 2: Isi Data Mahasiswa</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="nim">NIM</label>
+                                            <input type="text" class="form-control" name="NIM" id="nim" placeholder="Masukkan NIM Mahasiswa" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="nama">Nama Lengkap</label>
+                                            <input type="text" class="form-control" name="nama" id="nama" placeholder="Masukkan Nama Lengkap" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Langkah 3: Isi Penilaian Soft Skill & Perilaku</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-category mb-3">Isi semua nilai dalam skala 1 sampai 5.</p>
+                                        <div class="row">
+                                            <div class="col-md-6"><div class="form-group"><label for="ETIKA">Etika</label><input type="number" class="form-control" name="ETIKA" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="BERPIKIR_KRITIS">Berpikir Kritis</label><input type="number" class="form-control" name="BERPIKIR_KRITIS" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="KEPEMIMPINAN">Kepemimpinan</label><input type="number" class="form-control" name="KEPEMIMPINAN" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="KEMAMPUAN_KOMUNIKASI">Kemampuan Komunikasi</label><input type="number" class="form-control" name="KEMAMPUAN_KOMUNIKASI" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="MANAJEMEN_DIRI">Manajemen Diri</label><input type="number" class="form-control" name="MANAJEMEN_DIRI" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="PENYELESAIAN_MASALAH">Penyelesaian Masalah</label><input type="number" class="form-control" name="PENYELESAIAN_MASALAH" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="KERJA_SAMA_TIM">Kerja Sama Tim</label><input type="number" class="form-control" name="KERJA_SAMA_TIM" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="MANAJEMEN_WAKTU">Manajemen Waktu</label><input type="number" class="form-control" name="MANAJEMEN_WAKTU" min="1" max="5" placeholder="1-5" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="TUGAS_TERLAMBAT">Jumlah Tugas Terlambat</label><input type="number" class="form-control" name="TUGAS_TERLAMBAT" min="0" placeholder="Contoh: 3" required></div></div>
+                                            <div class="col-md-6"><div class="form-group"><label for="ORGANISASI">Keterlibatan Organisasi</label><select class="form-select" name="ORGANISASI" required><option value="Ya">Ya</option><option value="Tidak">Tidak</option></select></div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Langkah 4: Isi Data Kehadiran (Semester {{ selected_semester }})</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if mata_kuliah %}
+                                        <div class="form-group">
+                                            <label for="total_pertemuan">Total Pertemuan per Mata Kuliah</label>
+                                            <input type="number" class="form-control" name="total_pertemuan" id="total_pertemuan" value="16" min="1" required>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped mt-3">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">Nama Mata Kuliah</th>
+                                                        <th scope="col" style="width: 200px;">Jumlah Kehadiran</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for matkul in mata_kuliah %}
+                                                    <tr>
+                                                        <td>{{ matkul.nama }}</td>
+                                                        <td>
+                                                            <input type="number" class="form-control" name="kehadiran_{{ matkul.kode }}" value="0" min="0" required>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        {% else %}
+                                        <p class="text-center text-muted">Tidak ada mata kuliah untuk semester ini. Silakan pilih semester lain.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if mata_kuliah %}
+                        <div class="row">
+                            <div class="col-md-12 text-center my-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Kirim Data & Lihat Hasil Prediksi
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </form> </div>
+            </div>
+
+            {% include 'footer.html' %}
+        </div>
+    </div>

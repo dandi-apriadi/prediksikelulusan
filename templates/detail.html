@@ -1,0 +1,81 @@
+{% include 'header.html' %}
+<body>
+<div class="wrapper">
+    {% include 'sidebar.html' %}
+    <div class="main-panel">
+        {% include 'navbar.html' %}
+
+        <div class="container">
+            <div class="page-inner">
+                <div class="page-header">
+                    <h3 class="fw-bold mb-3">Detail Riwayat Prediksi</h3>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">Informasi Mahasiswa</h4></div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center"><strong>NIM:</strong> <span>{{ prediction.NIM }}</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Nama:</strong> <span>{{ prediction.Nama }}</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Prediksi:</strong> 
+                                        {% if prediction.Prediksi == "Lulus" %}
+                                            <span class="badge bg-success">{{ prediction.Prediksi }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ prediction.Prediksi }}</span>
+                                        {% endif %}
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Tanggal:</strong> <span>{{ prediction.DateTime.strftime('%d-%m-%Y %H:%M') }}</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center"><strong>Dibuat Oleh:</strong> <span>{{ prediction.Submitted_by }}</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header"><h4 class="card-title">Analisis Faktor Prediksi (SHAP)</h4></div>
+                            <div class="card-body">
+                                <p class="text-muted">Grafik di bawah ini menunjukkan faktor-faktor yang mendorong (biru) atau menahan (merah) prediksi kelulusan.</p>
+                                <div class="shap-container">
+                                    {{ prediction.get('shap_plot_html', 'Analisis SHAP tidak tersedia.')|safe }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3"> <div class="col-12">
+                         <div class="card">
+                            <div class="card-header"><h4 class="card-title">Data Input yang Digunakan</h4></div>
+                             <div class="card-body">
+                                 <div class="table-responsive">
+                                     <table class="table table-bordered table-striped"> <thead>
+                                             <tr>
+                                                 <th>Fitur/Variabel</th>
+                                                 <th>Nilai</th>
+                                             </tr>
+                                         </thead>
+                                         <tbody>
+                                             {% for key, value in prediction.input_data.items() %}
+                                             <tr>
+                                                 <td>{{ key }}</td>
+                                                 <td>{{ value|round(2) }}</td>
+                                             </tr>
+                                             {% endfor %}
+                                         </tbody>
+                                     </table>
+                                 </div>
+                             </div>
+                         </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>
