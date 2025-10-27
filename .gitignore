@@ -162,6 +162,7 @@ akun.txt
 *.json
 !package.json
 !tsconfig.json
+!requirements*.txt
 
 # Logs
 *.log
